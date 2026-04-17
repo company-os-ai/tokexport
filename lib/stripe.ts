@@ -2,7 +2,7 @@ import Stripe from "stripe";
 
 let cachedStripe: Stripe | null = null;
 
-function getStripe(): Stripe {
+export function getStripe(): Stripe {
   if (cachedStripe) return cachedStripe;
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) {
@@ -17,6 +17,7 @@ export type PaidSession = {
   email: string | null;
   amountTotal: number | null;
   currency: string | null;
+  metadata: Record<string, string>;
 };
 
 export async function verifyPaidSession(
@@ -25,7 +26,9 @@ export async function verifyPaidSession(
   const session = await getStripe().checkout.sessions.retrieve(sessionId);
 
   if (session.payment_status !== "paid") {
-    throw new Error(`session ${sessionId} not paid (status: ${session.payment_status})`);
+    throw new Error(
+      `session ${sessionId} not paid (status: ${session.payment_status})`,
+    );
   }
 
   const handle =
@@ -35,7 +38,9 @@ export async function verifyPaidSession(
     null;
 
   if (!handle) {
-    throw new Error(`session ${sessionId} has no handle in client_reference_id or metadata`);
+    throw new Error(
+      `session ${sessionId} has no handle in client_reference_id or metadata`,
+    );
   }
 
   return {
@@ -43,5 +48,6 @@ export async function verifyPaidSession(
     email: session.customer_details?.email ?? session.customer_email ?? null,
     amountTotal: session.amount_total,
     currency: session.currency,
+    metadata: session.metadata ?? {},
   };
 }
