@@ -26,7 +26,8 @@ export async function fulfill(
 
   const handle = input.handle.replace(/^@/, "");
 
-  const url = `https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/run-sync-get-dataset-items?token=${apiKey}`;
+  // memory=1024 keeps us under Apify's free-tier 8GB concurrent cap.
+  const url = `https://api.apify.com/v2/acts/${APIFY_ACTOR_ID}/run-sync-get-dataset-items?token=${apiKey}&memory=1024`;
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
